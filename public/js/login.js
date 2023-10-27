@@ -1,6 +1,7 @@
 const btnSignup = document.getElementById("btn-signup");
 const btnLogin = document.getElementById("btn-login");
-const btnForgot = document.getElementById("btn-forgot")
+const btnForgot = document.getElementById("btn-forgot");
+const btnNewPassword = document.getElementById("btn-newPass")
 
 const signup = async (firstName, lastName, age, email, password) => {
     const response = await fetch(`/api/sessions/signup`, {
@@ -39,9 +40,34 @@ const login = async (email, password) => {
     }
 }
 
-const forgot = async (email, newPassword) => {
+const forgot = async (email) => {
     try {
         const response = await fetch(`/api/sessions/forgot`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+        })
+
+        if (response.ok) {
+            return true
+        } else {
+            const data = await response.json()
+            return data.name
+        }
+
+    }
+    catch (error) {
+        console.log(error);
+    }
+
+}
+
+const newPass = async (email, newPassword) => {
+
+    try {
+        const response = await fetch(`/api/sessions/newPassword`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -157,21 +183,59 @@ if (btnSignup) {
         }
 
     });
-} else {
+} else if (btnForgot) {
 
     btnForgot.addEventListener("click", async (e) => {
         e.preventDefault()
         const email = document.getElementById("email").value
+
+        const result = await forgot(email)
+        console.log(result);
+
+        if (result === true) {
+            Toastify({
+                text: `Se ha enviado un correo`,
+                duration: 2000,
+                className: "info",
+                close: true,
+                gravity: "top",
+                position: "center",
+                stopOnFocus: true,
+                style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)",
+                }
+            }).showToast()
+
+        } else {
+            Toastify({
+                text: `${result}`,
+                duration: 3000,
+                className: "info",
+                close: true,
+                gravity: "top",
+                position: "center",
+                stopOnFocus: true,
+                style: {
+                    background: "linear-gradient(to left, #b00017, #5e1f21)",
+                }
+            }).showToast()
+        }
+
+    })
+} else if (btnNewPassword) {
+    btnNewPassword.addEventListener("click", async (e) => {
+        e.preventDefault()
+
+        const email = document.getElementById("email").textContent
         const newPassword = document.getElementById("newPassword").value
         const newPasswordTwo = document.getElementById("newPasswordTwo").value
 
         if (newPassword === newPasswordTwo) {
-
-            const result = await forgot(email, newPassword)
+            const result = await newPass(email, newPassword)
 
             if (result === true) {
                 Toastify({
-                    text: `Contraseña Actualizada`,
+                    text: `Cambio realizado!`,
                     duration: 2000,
                     className: "info",
                     close: true,
@@ -186,7 +250,6 @@ if (btnSignup) {
                 setTimeout(() => {
                     window.location.href = `/`;
                 }, 2000)
-
             } else {
                 Toastify({
                     text: `${result}`,
@@ -202,7 +265,6 @@ if (btnSignup) {
                 }).showToast()
             }
         } else {
-
             Toastify({
                 text: `Las contraseñas no coinciden`,
                 duration: 3000,

@@ -2,6 +2,10 @@ import ProductModel from "../models/products.model.js";
 import CustomError from "../../../services/errors/CustomError.js";
 import EErrors from "../../../services/errors/enums.js";
 import { generateProductErrorInfo } from "../../../services/errors/info.js";
+import UserModel from "../models/users.model.js";
+import jwt from "jsonwebtoken"
+import Config from "../../../config/config.js";
+
 
 export default class Products {
     constructor() { }
@@ -55,6 +59,16 @@ export default class Products {
             //return res.status(404).json({ message: `Ya existe el producto con el CODE: ${code}` });
         }
 
+        const token = req.cookies["coderCookieToken"];
+        const userToken = jwt.verify(token, Config.COOKIE_KEY)
+        let user
+        if (userToken.admin) {
+            user = userToken
+        } else {
+            user = await UserModel.findOne({ email: userToken.email })
+        }
+
+        console.log(userToken);
         try {
 
             const product = {
@@ -65,7 +79,8 @@ export default class Products {
                 status,
                 stock,
                 category,
-                thumbnails
+                thumbnails,
+                owner: user.role === "user_premium" ? user.email : "admin"
             }
 
             const result = await ProductModel.create(product)
@@ -94,7 +109,26 @@ export default class Products {
                 //return res.status(404).json({ message: "Not Found" });
             }
 
-            const result = await ProductModel.findOneAndDelete({ code: pid })
+            const token = req.cookies["coderCookieToken"];
+            const userToken = jwt.verify(token, Config.COOKIE_KEY)
+            let result
+
+            if (userToken.admin) {
+                result = await ProductModel.findOneAndDelete({ code: pid })
+            } else {
+
+                const user = await UserModel.findOne({ email: userToken.email })
+                if (product.owner !== user.email) {
+                    req.logger.error(`Error al eliminar el producto code ${pid}: No tiene permisos!`)
+                    CustomError.createError({
+                        name: "Not Authorized",
+                        cause: generateProductErrorInfo(product),
+                        message: "Not Authorized",
+                        code: EErrors.DATABASE_ERROR
+                    })
+                }
+                result = await ProductModel.findOneAndDelete({ code: pid })
+            }
 
             req.logger.info(`Se ha eliminado el producto ${result.title} - DATE:${new Date().toLocaleTimeString()}`)
 
@@ -204,26 +238,35 @@ export default class Products {
                     status: e.status,
                     stock: e.stock,
                     category: e.category,
-                    thumbnails: e.thumbnails
+                    thumbnails: e.thumbnails,
+                    owner: e.owner
                 }
             })
 
             let status = result ? "success" : "error"
 
-
             let queryFormated = query ? req.query.query.replace(/ /g, "%20") : ""
 
-            const user = await req.user
-
             let isAdmin = false
+            let isPremium = false
+            let hadPermissions = false
+            let user
 
-            if (user.role === "admin") {
+            if (req.user.admin) {
                 isAdmin = true
+                hadPermissions = true
+                user = req.user
+            } else {
+                user = await UserModel.findOne({ email: req.user.email }).lean()
+                if (user.role === "user_premium") {
+                    isPremium = true
+                    hadPermissions = true
+                }
             }
 
             let response = {
                 status,
-                payload: { product, user, isAdmin },
+                payload: { product, user, isAdmin, isPremium, hadPermissions },
                 totalPages: result.totalPages,
                 prevPage: result.prevPage,
                 nextPage: result.nextPage,

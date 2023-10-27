@@ -3,6 +3,9 @@ import CartsModel from "../models/carts.model.js"
 import UserModel from "../models/users.model.js"
 import jwt from "jsonwebtoken"
 import Config from "../../../config/config.js"
+import CustomError from "../../../services/errors/CustomError.js";
+import EErrors from "../../../services/errors/enums.js";
+import { generateProductErrorInfo } from "../../../services/errors/info.js";
 
 const adminArray = []
 export default class Carts {
@@ -79,7 +82,7 @@ export default class Carts {
             res.status(500).send(error)
         }
     }
-    addProductToCart = async (cid, pid, req, res) => {
+    addProductToCart = async (token, cid, pid, req, res) => {
 
 
         try {
@@ -87,6 +90,21 @@ export default class Carts {
             let carrito = await CartsModel.findOne({ _id: cid })
 
             let producto = await ProductModel.findOne({ _id: pid })
+
+            const userToken = jwt.verify(token, Config.COOKIE_KEY)
+
+            if (!userToken.admin) {
+
+                if (producto.owner === userToken.email) {
+                    req.logger.error(`Error al agregar un producto al carrito ${cid}: No puede agregar su mismo producto!`)
+                    CustomError.createError({
+                        name: "Error al agregar el producto",
+                        cause: generateProductErrorInfo(product),
+                        message: `No puede agregar su mismo producto`,
+                        code: EErrors.INVALID_TYPES_ERROR
+                    })
+                }
+            }
 
             if (carrito === null) {
                 req.logger.error(`Error al agregar un producto al carrito ${cid}: No se ha encontrado un carrito con este code!`)

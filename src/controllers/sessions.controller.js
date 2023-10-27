@@ -12,10 +12,17 @@ export const signup = async (req, res) => {
 export const forgot = async (req, res) => {
     return await sessionsServices.forgot(req, res)
 }
+export const newPassword = async (req, res) => {
+    return await sessionsServices.newPassword(req, res)
+}
 export const logout = async (req, res) => {
     return await sessionsServices.logout(req, res)
 }
 
 export const current = async (req, res) => {
     return await sessionsServices.current(req, res)
+}
+
+export const changeRole = async (req, res) => {
+    return await sessionsServices.changeRole(req, res)
 }

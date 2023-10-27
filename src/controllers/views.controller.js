@@ -35,6 +35,11 @@ export class viewsController {
         res.render("forgot", { style: "login.css" })
     }
 
+    static newPassword = async (req, res) => {
+        const { user } = req.params
+        res.render("newPassword", { style: "login.css", user })
+    }
+
     static tickets = async (req, res) => {
         const data = await getTickets(req, res)
         res.render("tickets", { style: "styles.css", data })

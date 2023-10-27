@@ -19,6 +19,7 @@ const customLevelsOptions = {
         debug: "italic white"
     }
 }
+
 const devLogger = winston.createLogger({
     levels: customLevelsOptions.levels,
     transports: [

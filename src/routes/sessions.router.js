@@ -1,4 +1,4 @@
-import { login, loginGitHub, signup, forgot, logout, current } from "../controllers/sessions.controller.js";
+import { login, loginGitHub, signup, forgot, logout, current, newPassword, changeRole } from "../controllers/sessions.controller.js";
 import { passportCall } from "../utils.js";
 import Routes from "./router.js";
 
@@ -9,8 +9,11 @@ export default class SessionRouter extends Routes {
 
         this.post("/signup", ["PUBLIC"], signup);
 
-        //Ruta para cambiar la contraseña
+        //Ruta para solicitar cambio de contraseña
         this.put("/forgot", ["PUBLIC"], forgot)
+
+        //Ruta para cambiar la contraseña
+        this.put("/newPassword", ["PUBLIC"], newPassword)
 
         //Ruta para eliminar la sesion actual
         this.get("/logout", ["USER", "USER_PREMIUM", "ADMIN"], logout)
@@ -27,6 +30,9 @@ export default class SessionRouter extends Routes {
         this.get("/github", ["PUBLIC"], passportCall("github", { scope: ["user:email"] }), (req, res) => { res.status(200).send("success") })
 
         this.get("/githubCallback", ["PUBLIC"], passportCall("github", { failureRedirect: "/api/sessions/failureLogin" }), loginGitHub)
+
+        //Ruta para cambiar rol de usuario
+        this.get("/premium/:uid", ["USER", "USER_PREMIUM", "ADMIN"], changeRole)
     }
 }
 

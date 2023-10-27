@@ -14,8 +14,9 @@ export default class CartReposity {
         return await this.dao.addCart(token, req, res)
     }
     addProductToCart = async (req, res) => {
+        const token = req.cookies["coderCookieToken"];
         const { cid, pid } = req.params
-        return await this.dao.addProductToCart(cid, pid, req, res)
+        return await this.dao.addProductToCart(token, cid, pid, req, res)
     }
     deleteCart = async (req, res) => {
         const { cid } = req.params

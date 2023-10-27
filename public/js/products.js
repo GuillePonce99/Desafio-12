@@ -67,6 +67,45 @@ const saludo = () => {
     updateCartNumber()
 }
 
+//Funcion para cambiar el rol de usuario
+const changeRole = () => {
+    const btnRole = document.getElementById("btn-role")
+    let uid
+    btnRole.addEventListener("click", async (e) => {
+        e.preventDefault()
+        const result = await fetch(`/api/sessions/current`)
+
+        if (result.ok) {
+            const data = await result.json()
+            uid = data._id
+        }
+
+        const resultTwo = await fetch(`/api/sessions/premium/${uid}`)
+
+        if (resultTwo.ok) {
+            console.log(await resultTwo.json());
+            Toastify({
+                text: `✅`,
+                duration: 2000,
+                className: "info",
+                close: true,
+                gravity: "top",
+                position: "center",
+                stopOnFocus: true,
+                style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)",
+                }
+            }).showToast()
+
+            setTimeout(() => {
+                location.reload();
+            }, 2000)
+        } else {
+            console.log("not");
+        }
+    })
+}
+changeRole()
 //Funcion para obtener del LS el Id el carrito
 const getCartId = async () => {
     if (profile.dataset.admin !== "true") {
@@ -201,7 +240,7 @@ btnAddCart.forEach(btn => {
             cart = await getCartId()
             cartId = cart.cartId
 
-            await fetch(`/api/carts/${cartId}/product/${productId}`, {
+            const result = await fetch(`/api/carts/${cartId}/product/${productId}`, {
 
                 method: 'POST',
                 headers: {
@@ -209,8 +248,9 @@ btnAddCart.forEach(btn => {
                 },
                 body: JSON.stringify({ productId }),
 
-            }).then(() => {
+            })
 
+            if (result.ok) {
                 updateCartNumber()
 
                 Toastify({
@@ -227,22 +267,20 @@ btnAddCart.forEach(btn => {
 
                 }).showToast()
 
-            }).catch((error) => {
-                if (error) {
+            } else {
 
-                    Toastify({
-                        text: 'Error al agregar el producto al carrito',
-                        className: "success",
-                        close: true,
-                        gravity: "bottom",
-                        position: "center",
-                        style: {
-                            background: "linear-gradient(to left, #b00017, #5e1f21)",
-                        }
-                    }).showToast();
+                Toastify({
+                    text: 'Error al agregar el producto al carrito',
+                    className: "success",
+                    close: true,
+                    gravity: "bottom",
+                    position: "center",
+                    style: {
+                        background: "linear-gradient(to left, #b00017, #5e1f21)",
+                    }
+                }).showToast();
+            }
 
-                }
-            })
 
         } catch (error) {
             console.log(error);

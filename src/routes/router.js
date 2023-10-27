@@ -1,6 +1,7 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken"
 import { PRIVATE_KEY } from "../utils.js";
+import UserModel from "../dao/mongo/models/users.model.js";
 
 export default class Routes {
     constructor() {

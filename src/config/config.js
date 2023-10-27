@@ -19,6 +19,9 @@ dotenv.config({
 })
 
 export default {
+    MAILER_SERVICE: process.env.MAILER_SERVICE,
+    MAILER_USER: process.env.MAILER_USER,
+    MAILER_PASSWORD: process.env.MAILER_PASSWORD,
     PORT: options.port || process.env.PORT,
     MONGO_DB: process.env.MONGO_DB,
     MONGO_URI: process.env.MONGO_URI,
