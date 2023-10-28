@@ -166,6 +166,8 @@ export default class Sessions {
         return res.status(401).json({ message: "Email incorrecto!" })
       }
 
+      let token = generateToken(user.toJSON())
+
       let result = await transport.sendMail({
         from: "Coder test",
         to: "guille.13577@gmail.com",
@@ -209,7 +211,7 @@ export default class Sessions {
                                       <td style="padding:0 0 36px 0;color:#153643;">
                                         <h1 style="font-size:24px;margin:0 0 20px 0;font-family:Arial,sans-serif;">${user.firstName.toUpperCase()}</h1>
                                         <p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">Has solicitado el cambio de contraseña, ingrese al siguiente link para finalizar.</p>
-                                        <p style="margin:0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;"><a href="http://localhost:${Config.PORT}/newPassword/${user.email}" style="color:#ee4c50;text-decoration:underline;">Cambiar contraseña!</a></p>
+                                        <p style="margin:0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;"><a href="http://localhost:${Config.PORT}/newPassword/${user.email}/${token}" style="color:#ee4c50;text-decoration:underline;">Cambiar contraseña!</a></p>
                                       </td>
                                     </tr>
                                     <tr>
@@ -273,13 +275,14 @@ export default class Sessions {
 
     }
     catch (error) {
+      console.log(error);
       res.status(500).send(error)
     }
   }
 
   newPassword = async (req, res) => {
     const { email, newPassword } = req.body
-    console.log(email, newPassword);
+
     try {
       const user = await UserModel.findOne({ email })
 

@@ -1,6 +1,8 @@
 import { getProductsView } from "./product.controller.js"
 import { getCartByIdView } from "./carts.controller.js"
 import { getTickets } from "./tickets.controller.js"
+import { PRIVATE_KEY } from "../utils.js"
+import jwt from "jsonwebtoken"
 
 export class viewsController {
 
@@ -36,8 +38,15 @@ export class viewsController {
     }
 
     static newPassword = async (req, res) => {
-        const { user } = req.params
-        res.render("newPassword", { style: "login.css", user })
+        const { user, token } = req.params
+
+        jwt.verify(token, PRIVATE_KEY, (error, credentials) => {
+            if (error) {
+                return res.render("401", { style: "error.css" })
+            }
+            req.user = credentials.user;
+            res.render("newPassword", { style: "login.css", user })
+        })
     }
 
     static tickets = async (req, res) => {
